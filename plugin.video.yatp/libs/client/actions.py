@@ -25,7 +25,24 @@ def _play(path):
     :return:
     """
     plugin.log_notice('Path to play: {0}'.format(path))
-    return plugin.resolve_url(path, succeeded=bool(path))
+    try:
+        #check if torrent contains subtitle file.
+        import xbmc, urllib
+        d_dir = plugin.get_setting('download_dir') or xbmc.translatePath('special://temp')
+        srt = d_dir + urllib.unquote(path.split('stream/')[-1][:-3] + 'srt')
+        sub_file = os.path.join(d_dir, srt)
+
+        #if subtitle exists, pass it to the play_item
+        if os.path.isfile(sub_file):
+            plugin.log_notice('Path to subtitle: {0}'.format(sub_file))
+            set_subs = {'path': path, 'subtitles': [sub_file]}
+            return plugin.resolve_url(play_item=set_subs, succeeded=bool(path))
+        else:
+            #if no subtitle
+            return plugin.resolve_url(path, succeeded=bool(path))
+
+    except:
+        pass
 
 
 @plugin.action()
